@@ -28,6 +28,7 @@ from pydantic import BaseModel
 from config import get_settings
 from db.session import init_db, db_session
 from db.models import OutreachStatus
+from memory.qdrant_store import init_collections
 from agents.manager import ArtistManagerAgent
 from tools.booking import add_venue as _add_venue, search_venues as _search_venues
 from tools.outreach import (
@@ -46,6 +47,11 @@ from tools.metrics import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    try:
+        init_collections()
+    except Exception as e:
+        # Qdrant might not be ready yet on first boot — non-fatal
+        print(f"[warning] Qdrant init skipped: {e}")
     yield
 
 

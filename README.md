@@ -20,15 +20,33 @@ Agent    Agent    Agent
         │
         ▼
 Model Router
-  Opus 4.6  (strategy, complex drafts)
+  Opus 4.6  (strategy, complex drafts — adaptive thinking)
   Haiku 4.5 (fast lookups)
         │
         ▼
-Storage Layer (PostgreSQL)
-  venues · outreach_records
-  social_posts · metric_entries
+Storage Layer
+  PostgreSQL                    Qdrant (vector memory)
+  venues                        venues        ← semantic venue search
+  outreach_records              outreach      ← find proven email templates
+  social_posts                  social_posts  ← voice consistency checks
+  metric_entries                strategies    ← pattern reference
   weekly_strategies
 ```
+
+### Vector Memory (Qdrant)
+
+Embeddings are generated locally using `fastembed` (`BAAI/bge-small-en-v1.5`, 384-dim, CPU-only, ~130 MB download on first run). No OpenAI or external embedding API needed.
+
+**Auto-embedded on write:** every `add_venue`, `record_outreach`, `save_social_post`, and `save_weekly_strategy` call also upserts into Qdrant. Embedding is a silent side-effect — a Qdrant failure never breaks the write.
+
+**Agent search tools:**
+
+| Tool | Use case |
+|------|----------|
+| `search_similar_venues` | "Find underground techno clubs in Berlin under 1000 cap" |
+| `search_similar_outreach` | Find a successful booking email to use as a template |
+| `search_similar_posts` | Check voice consistency before posting |
+| `search_past_strategies` | Reference what worked in previous weeks |
 
 ## Quick Start
 

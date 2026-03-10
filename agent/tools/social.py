@@ -130,6 +130,20 @@ def save_social_post(
     )
     db.add(post)
     db.flush()
+
+    # Auto-embed into vector memory
+    try:
+        from memory.qdrant_store import upsert_social_post
+        upsert_social_post(
+            post_id=post.id,
+            platform=platform,
+            post_type=post_type or "",
+            content=content,
+            hashtags=hashtags or "",
+        )
+    except Exception:
+        pass
+
     return json.dumps({
         "status": "saved",
         "post_id": post.id,

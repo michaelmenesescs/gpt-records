@@ -138,6 +138,21 @@ def record_outreach(
     )
     db.add(record)
     db.flush()
+
+    # Auto-embed into vector memory
+    try:
+        from memory.qdrant_store import upsert_outreach
+        upsert_outreach(
+            outreach_id=record.id,
+            promoter=promoter_name,
+            subject=email_subject,
+            body=email_body or "",
+            status=OutreachStatus.CONTACTED,
+            contacted_at=now.strftime("%Y-%m-%d"),
+        )
+    except Exception:
+        pass
+
     return json.dumps({
         "status": "recorded",
         "outreach_id": record.id,

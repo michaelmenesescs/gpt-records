@@ -215,6 +215,19 @@ def save_weekly_strategy(
     )
     db.add(ws)
     db.flush()
+
+    # Auto-embed into vector memory
+    try:
+        from memory.qdrant_store import upsert_strategy
+        upsert_strategy(
+            strategy_id=ws.id,
+            week_of=week_dt.strftime("%Y-%m-%d"),
+            goals=goals or "",
+            strategy_text=strategy,
+        )
+    except Exception:
+        pass
+
     return json.dumps({"status": "saved", "strategy_id": ws.id, "week_of": week_dt.strftime("%Y-%m-%d")})
 
 

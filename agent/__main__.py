@@ -20,6 +20,7 @@ from rich.rule import Rule
 
 from config import get_settings
 from db.session import init_db
+from memory.qdrant_store import init_collections
 from agents.manager import ArtistManagerAgent
 
 console = Console()
@@ -122,6 +123,10 @@ def load_demo_data():
 def run_cli():
     settings = get_settings()
     init_db()
+    try:
+        init_collections()
+    except Exception:
+        console.print("[yellow]⚠ Qdrant not reachable — vector memory disabled[/yellow]")
 
     console.print(BANNER)
     console.print(

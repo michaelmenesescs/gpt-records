@@ -118,6 +118,21 @@ def add_venue(db: Session, name: str, city: str = None, country: str = None,
     )
     db.add(venue)
     db.flush()
+
+    # Auto-embed into vector memory (best-effort — never block the write)
+    try:
+        from memory.qdrant_store import upsert_venue
+        upsert_venue(
+            venue_id=venue.id,
+            name=name,
+            city=city or "",
+            country=country or "",
+            genres=genres or "",
+            notes=notes or "",
+        )
+    except Exception:
+        pass
+
     return json.dumps({
         "status": "created",
         "venue_id": venue.id,

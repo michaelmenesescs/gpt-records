@@ -1,4 +1,4 @@
-.PHONY: up down logs shell db-shell migrate cli
+.PHONY: up down logs shell db-shell qdrant-shell migrate cli
 
 up:
 	docker compose up -d
@@ -18,8 +18,11 @@ shell:
 db-shell:
 	docker compose exec db psql -U gpt -d gpt_records
 
+qdrant-shell:
+	open http://localhost:6333/dashboard
+
 migrate:
-	docker compose exec agent python -c "from db.session import init_db; init_db()"
+	docker compose exec agent python -c "from db.session import init_db; from memory.qdrant_store import init_collections; init_db(); init_collections()"
 
 # Interactive agent CLI (runs inside container)
 cli:

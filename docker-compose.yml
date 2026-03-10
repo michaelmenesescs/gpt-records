@@ -17,11 +17,25 @@ services:
       timeout: 5s
       retries: 10
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"  # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   agent:
     build: ./agent
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-gpt}:${POSTGRES_PASSWORD:-gpt_secret}@db:5432/gpt_records
+      - QDRANT_URL=http://qdrant:6333
       - ARTIST_NAME=${ARTIST_NAME:-Artist}
       - ARTIST_GENRE=${ARTIST_GENRE:-Electronic}
       - ARTIST_LOCATION=${ARTIST_LOCATION:-London, UK}
@@ -31,9 +45,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     volumes:
       - ./agent:/app
+      - fastembed_cache:/root/.cache/fastembed  # persist downloaded model weights
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   postgres_data:
+  qdrant_data:
+  fastembed_cache:

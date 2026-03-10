@@ -36,6 +36,13 @@ from tools.metrics import (
     log_metrics,
     save_weekly_strategy,
 )
+from tools.memory import (
+    MEMORY_TOOL_DEFINITIONS,
+    search_similar_venues_tool,
+    search_similar_outreach_tool,
+    search_similar_posts_tool,
+    search_past_strategies_tool,
+)
 from agents.model_router import TaskTier, classify_intent, route
 
 # ---------------------------------------------------------------------------
@@ -90,12 +97,24 @@ ALL_TOOLS = (
     + OUTREACH_TOOL_DEFINITIONS
     + SOCIAL_TOOL_DEFINITIONS
     + METRICS_TOOL_DEFINITIONS
+    + MEMORY_TOOL_DEFINITIONS
 )
 
-# Subset maps for specialised agents
-BOOKING_TOOLS = BOOKING_TOOL_DEFINITIONS + OUTREACH_TOOL_DEFINITIONS
-CONTENT_TOOLS = SOCIAL_TOOL_DEFINITIONS
-STRATEGY_TOOLS = METRICS_TOOL_DEFINITIONS + OUTREACH_TOOL_DEFINITIONS
+# Subset maps for specialised agents — each gets relevant memory search tools
+BOOKING_TOOLS = (
+    BOOKING_TOOL_DEFINITIONS
+    + OUTREACH_TOOL_DEFINITIONS
+    + [t for t in MEMORY_TOOL_DEFINITIONS if t["name"] in ("search_similar_venues", "search_similar_outreach")]
+)
+CONTENT_TOOLS = (
+    SOCIAL_TOOL_DEFINITIONS
+    + [t for t in MEMORY_TOOL_DEFINITIONS if t["name"] == "search_similar_posts"]
+)
+STRATEGY_TOOLS = (
+    METRICS_TOOL_DEFINITIONS
+    + OUTREACH_TOOL_DEFINITIONS
+    + [t for t in MEMORY_TOOL_DEFINITIONS if t["name"] in ("search_past_strategies", "search_similar_outreach")]
+)
 
 
 def _execute_tool(tool_name: str, tool_input: dict) -> str:
@@ -121,6 +140,11 @@ def _execute_tool(tool_name: str, tool_input: dict) -> str:
             "get_progress_report": lambda i: get_progress_report(db, **i),
             "save_weekly_strategy": lambda i: save_weekly_strategy(db, **i),
             "get_recent_strategies": lambda i: get_recent_strategies(db, **i),
+            # Vector memory search (no DB session needed)
+            "search_similar_venues": lambda i: search_similar_venues_tool(**i),
+            "search_similar_outreach": lambda i: search_similar_outreach_tool(**i),
+            "search_similar_posts": lambda i: search_similar_posts_tool(**i),
+            "search_past_strategies": lambda i: search_past_strategies_tool(**i),
         }
         handler = handlers.get(tool_name)
         if not handler:

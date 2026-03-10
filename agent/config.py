@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql://gpt:gpt_secret@localhost:5432/gpt_records"
 
+    # Qdrant vector store
+    qdrant_url: str = "http://localhost:6333"
+
     class Config:
         env_file = ".env"
         case_sensitive = False
