@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gpt_records
+      POSTGRES_USER: ${POSTGRES_USER:-gpt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gpt_secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gpt}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  agent:
+    build: ./agent
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-gpt}:${POSTGRES_PASSWORD:-gpt_secret}@db:5432/gpt_records
+      - ARTIST_NAME=${ARTIST_NAME:-Artist}
+      - ARTIST_GENRE=${ARTIST_GENRE:-Electronic}
+      - ARTIST_LOCATION=${ARTIST_LOCATION:-London, UK}
+      - ARTIST_BIO=${ARTIST_BIO:-Electronic music producer and DJ}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./agent:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
