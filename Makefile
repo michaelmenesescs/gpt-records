@@ -31,3 +31,9 @@ cli:
 # Run the agent CLI locally (requires .env set up)
 cli-local:
 	cd agent && python -m agent
+
+# Fetch all videos from a YouTube channel into a central playlist
+fetch-playlist:
+	python scripts/fetch_yt_playlist.py $(URL)
+
+# Example: make fetch-playlist URL=https://www.youtube.com/@FreeisinDaHouse

@@ -43,6 +43,12 @@ from tools.memory import (
     search_similar_posts_tool,
     search_past_strategies_tool,
 )
+from tools.youtube import (
+    YOUTUBE_TOOL_DEFINITIONS,
+    fetch_channel_playlist,
+    get_playlist,
+    export_playlist_urls,
+)
 from agents.model_router import TaskTier, classify_intent, route
 
 # ---------------------------------------------------------------------------
@@ -98,6 +104,7 @@ ALL_TOOLS = (
     + SOCIAL_TOOL_DEFINITIONS
     + METRICS_TOOL_DEFINITIONS
     + MEMORY_TOOL_DEFINITIONS
+    + YOUTUBE_TOOL_DEFINITIONS
 )
 
 # Subset maps for specialised agents — each gets relevant memory search tools
@@ -145,6 +152,10 @@ def _execute_tool(tool_name: str, tool_input: dict) -> str:
             "search_similar_outreach": lambda i: search_similar_outreach_tool(**i),
             "search_similar_posts": lambda i: search_similar_posts_tool(**i),
             "search_past_strategies": lambda i: search_past_strategies_tool(**i),
+            # YouTube (no DB session needed)
+            "fetch_channel_playlist": lambda i: fetch_channel_playlist(**i),
+            "get_playlist": lambda i: get_playlist(**i),
+            "export_playlist_urls": lambda i: export_playlist_urls(**i),
         }
         handler = handlers.get(tool_name)
         if not handler:
